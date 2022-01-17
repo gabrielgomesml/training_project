@@ -29,12 +29,12 @@ export default class UsersRepository extends Repository<Users> {
         }
     }
 
-    async findUserById(id: string): Promise<ResultUserDTO | [] | boolean> {
+    async findUserById(id: string): Promise<ResultUserDTO | null | boolean> {
         try {
             const result = await this.findOne(id);
 
             if (!result) {
-                return [];
+                return null;
             }
 
             return result;
@@ -46,12 +46,12 @@ export default class UsersRepository extends Repository<Users> {
 
     async findUserByEmail(
         email: string,
-    ): Promise<ResultUserDTO[] | [] | boolean> {
+    ): Promise<ResultUserDTO[] | null | boolean> {
         try {
-            const result = await this.find({ where: email });
+            const result = await this.find({ where: { email } });
 
-            if (!result) {
-                return [];
+            if (result.length != 0) {
+                return null;
             }
 
             return result;
@@ -64,14 +64,14 @@ export default class UsersRepository extends Repository<Users> {
     async updateUserById(
         id: string,
         user: CreateUserDTO,
-    ): Promise<ResultUserDTO | [] | boolean> {
+    ): Promise<ResultUserDTO | null | boolean> {
         try {
             await this.update(id, user);
 
             const updatedUser = await this.findOne(id);
 
             if (!updatedUser) {
-                return [];
+                return null;
             }
 
             return updatedUser;
@@ -81,14 +81,12 @@ export default class UsersRepository extends Repository<Users> {
         }
     }
 
-    async deleteUserById(id: string): Promise<DeleteResult | false> {
+    async deleteUserById(id: string) {
         try {
             const result = await this.delete(id);
-
             return result;
         } catch (error) {
             console.log(error);
-            return false;
         }
     }
 }

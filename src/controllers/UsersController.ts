@@ -14,7 +14,7 @@ class UsersController {
                 email,
             );
 
-            if (userAlreadyExists) {
+            if (userAlreadyExists === null) {
                 return response
                     .status(400)
                     .json({ error: 'User already exists' });
@@ -50,7 +50,7 @@ class UsersController {
 
             const user = await usersRepository.findUserById(id);
 
-            if (user === []) {
+            if (user === null) {
                 return response.status(404).json({ message: 'User not found' });
             }
 
@@ -77,7 +77,7 @@ class UsersController {
                 request.body,
             );
 
-            if (updatedUser === []) {
+            if (updatedUser === null) {
                 return response.status(404).json({ message: 'User not found' });
             }
 
@@ -101,20 +101,26 @@ class UsersController {
 
             const user = await usersRepository.deleteUserById(id);
 
-            if (!user) {
+            if (user?.affected === 0) {
                 return response.status(400).json({ message: 'User not fond' });
             }
 
-            return response
+            if (user?.affected === 1) {
+                return response
                 .status(200)
                 .json({ message: 'User successfully deleted' });
+            }
+
+            return response
+                    .status(400)
+                    .json({ message: 'Incorrect params' });
         } catch (error) {
             return error;
         }
     }
 
-    async list(response: Response) {
-        // TO-DO: ADD REQUEST TO ALLOW PARAMS. PARAMS TO BE USED IN LIST USERS FUNCTION.
+    async list(request: Request, response: Response) {
+        // TO-DO: ADD REQUEST TO ALLOW PARAMS. PARAMS TO BE USED IN LIST USERS FUNCTION
         try {
             const usersRepository = getCustomRepository(UsersRepository);
 

@@ -28,7 +28,7 @@ class Users {
     @Column('text', { nullable: true })
     phone: string;
 
-    @Column('number')
+    @Column('int')
     role: number;
 
     @Column('boolean', { default: true })
