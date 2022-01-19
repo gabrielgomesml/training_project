@@ -33,11 +33,12 @@ class UsersController {
             }
 
             if (!user) {
-                return response.status(500).json({ error: 'Server error' });
+                return response.status(400).json({ error: 'Incorrect params' });
             }
 
             return response.status(201).json(user);
         } catch (error) {
+            console.log('erro: ', error);
             return error;
         }
     }
@@ -102,18 +103,16 @@ class UsersController {
             const user = await usersRepository.deleteUserById(id);
 
             if (user?.affected === 0) {
-                return response.status(400).json({ message: 'User not fond' });
+                return response.status(404).json({ message: 'User not fond' });
             }
 
             if (user?.affected === 1) {
                 return response
-                .status(200)
-                .json({ message: 'User successfully deleted' });
+                    .status(200)
+                    .json({ message: 'User successfully deleted' });
             }
 
-            return response
-                    .status(400)
-                    .json({ message: 'Incorrect params' });
+            return response.status(400).json({ message: 'Incorrect params' });
         } catch (error) {
             return error;
         }
