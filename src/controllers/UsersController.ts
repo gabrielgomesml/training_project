@@ -14,7 +14,7 @@ class UsersController {
                 email,
             );
 
-            if (userAlreadyExists === null) {
+            if (userAlreadyExists !== null) {
                 return response
                     .status(400)
                     .json({ error: 'User already exists' });

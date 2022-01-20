@@ -44,20 +44,32 @@ export default class UsersRepository extends Repository<Users> {
         }
     }
 
-    async findUserByEmail(
-        email: string,
-    ): Promise<ResultUserDTO[] | null | boolean> {
+    async findUserByEmail(email: string): Promise<ResultUserDTO | null> {
         try {
-            const result = await this.find({ where: { email } });
+            const result = await this.findOne({
+                where: { email },
+                select: [
+                    'id',
+                    'email',
+                    'password',
+                    'name',
+                    'surname',
+                    'photo_address',
+                    'phone',
+                    'role',
+                    'active',
+                    'createdAt',
+                ],
+            });
 
-            if (result.length != 0) {
+            if (!result) {
                 return null;
             }
 
             return result;
         } catch (error) {
             console.log(error);
-            return false;
+            return null;
         }
     }
 
