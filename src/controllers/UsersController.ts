@@ -38,7 +38,6 @@ class UsersController {
 
             return response.status(201).json(user);
         } catch (error) {
-            console.log('erro: ', error);
             return error;
         }
     }
