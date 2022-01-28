@@ -32,7 +32,7 @@ class AuthController {
             }
 
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-                expiresIn: 60,
+                expiresIn: 1800,
             });
 
             return response.status(200).json({

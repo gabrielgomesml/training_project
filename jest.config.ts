@@ -82,6 +82,8 @@ export default {
     moduleNameMapper: {
         '@controllers/(.*)': '<rootDir>/src/controllers/$1',
         '@repositories/(.*)': '<rootDir>/src/repositories/$1',
+        '@middlewares/(.*)': '<rootDir>/src/middlewares/$1',
+        '@models/(.*)': '<rootDir>/src/models/$1',
         'src/(.*)': '<rootDir>/src/$1',
         'tests/(.*)': '<rootDir>/__tests__/$1',
     },

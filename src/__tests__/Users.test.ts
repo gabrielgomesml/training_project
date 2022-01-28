@@ -2,11 +2,30 @@ import { createConnection, getConnection } from 'typeorm';
 import request from 'supertest';
 import { app } from '../app';
 
-const existingId = 'e101b751-b68c-4292-bf65-2a2cd8750525';
+const existingUserId = '';
+const existingUserEmail = '';
+const existingUserPassword = '';
+let token: string;
 
 describe('Users', () => {
     beforeAll(async () => {
         await createConnection();
+    });
+
+    // AUTH TESTS
+
+    it('GET: Should not return all users from the database because you are not authenticated', async () => {
+        const response = await request(app).get('/users');
+        expect(response.status).toBe(401);
+    });
+
+    it('POST: Should be able to authenticate', async () => {
+        const response = await request(app).post('/user-auth').send({
+            email: existingUserEmail,
+            password: existingUserPassword,
+        });
+        token = response.body.token;
+        expect(response.status).toBe(200);
     });
 
     // POST TESTS
@@ -70,33 +89,42 @@ describe('Users', () => {
     // GET TESTS
 
     it('GET: Should return all users from the database', async () => {
-        const response = await request(app).get('/users');
+        const response = await request(app)
+            .get('/users')
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(200);
     });
 
     it('GET: Should return a specific user from the database', async () => {
-        const response = await request(app).get(`/users/${existingId}`);
+        const response = await request(app)
+            .get(`/users/${existingUserId}`)
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(200);
     });
 
     it('GET: Should return 400 when passing an incorrect format id', async () => {
-        const response = await request(app).get('/users/3231313213');
+        const response = await request(app)
+            .get('/users/3231313213')
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(400);
     });
 
     it('GET: Should return 404 not found when passing a not existing id', async () => {
-        const response = await request(app).get(
-            '/users/0abfbb3a-52e9-4573-af9e-4846c0e17491',
-        );
+        const response = await request(app)
+            .get('/users/0abfbb3a-52e9-4573-af9e-4846c0e17491')
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(404);
     });
 
     // PATCH TESTS
 
     it('PATCH: Should be able to update a property from an existing user', async () => {
-        const response = await request(app).patch(`/users/${existingId}`).send({
-            surname: 'surname modified',
-        });
+        const response = await request(app)
+            .patch(`/users/${existingUserId}`)
+            .send({
+                surname: 'surname modified',
+            })
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(200);
     });
 
@@ -105,33 +133,41 @@ describe('Users', () => {
             .patch('/users/0abfbb3a-52e9-4573-af9e-4846c0e17491')
             .send({
                 surname: 'surname modified',
-            });
+            })
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(404);
     });
 
     it('PATCH: Should return 400 when passing an incorrect format id', async () => {
-        const response = await request(app).patch('/users/3231313213').send({
-            surname: 'surname modified',
-        });
+        const response = await request(app)
+            .patch('/users/3231313213')
+            .send({
+                surname: 'surname modified',
+            })
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(400);
     });
 
     // DELETE TESTS
 
     it('DELETE: Should delete a specific user from the database', async () => {
-        const response = await request(app).delete(`/users/${existingId}`);
+        const response = await request(app)
+            .delete(`/users/${existingUserId}`)
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(200);
     });
 
     it('DELETE: Should return 400 when passing an incorrect format id', async () => {
-        const response = await request(app).delete('/users/3231313213');
+        const response = await request(app)
+            .delete('/users/3231313213')
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(400);
     });
 
     it('DELETE: Should return 404 not found when passing a not existing id', async () => {
-        const response = await request(app).delete(
-            '/users/0abfbb3a-52e9-4573-af9e-4846c0e17491',
-        );
+        const response = await request(app)
+            .delete('/users/0abfbb3a-52e9-4573-af9e-4846c0e17491')
+            .set('Authorization', `bearer ${token}`);
         expect(response.status).toBe(404);
     });
 
