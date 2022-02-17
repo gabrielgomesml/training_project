@@ -6,6 +6,7 @@ import {
     OneToMany,
 } from 'typeorm';
 import MoviesUsers from './MoviesUsers';
+import GenresMovies from './GenresMovies';
 
 @Entity('movies')
 class Movies {
@@ -26,6 +27,9 @@ class Movies {
 
     @OneToMany(() => MoviesUsers, movies_users => movies_users.movie)
     movies_users: MoviesUsers[];
+
+    @OneToMany(() => GenresMovies, genres_movies => genres_movies.movie)
+    genres_movies: GenresMovies[];
 
     @CreateDateColumn()
     createdAt: Date;
