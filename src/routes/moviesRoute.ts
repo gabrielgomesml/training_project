@@ -6,7 +6,7 @@ const router = Router();
 
 router
     .route('/movies')
-    .post(Authentication.authenticate, MoviesController.create)
+    .post(MoviesController.create)
     .get(MoviesController.list);
 
 router

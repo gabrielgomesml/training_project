@@ -3,7 +3,9 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     CreateDateColumn,
+    OneToMany,
 } from 'typeorm';
+import MoviesUsers from './MoviesUsers';
 
 @Entity('movies')
 class Movies {
@@ -21,6 +23,9 @@ class Movies {
 
     @Column('text')
     release_year: string;
+
+    @OneToMany(() => MoviesUsers, movies_users => movies_users.movie)
+    movies_users: MoviesUsers[];
 
     @CreateDateColumn()
     createdAt: Date;
