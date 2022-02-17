@@ -1,6 +1,5 @@
 import MoviesController from '@controllers/MoviesController';
 import { Router } from 'express';
-import Authentication from '@middlewares/authentication';
 
 const router = Router();
 
@@ -11,8 +10,8 @@ router
 
 router
     .route('/movies/:id')
-    .get(Authentication.authenticate, MoviesController.read)
-    .patch(Authentication.authenticate, MoviesController.update)
-    .delete(Authentication.authenticate, MoviesController.delete);
+    .get(MoviesController.read)
+    .patch(MoviesController.update)
+    .delete(MoviesController.delete);
 
 export default router;

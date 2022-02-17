@@ -1,18 +1,17 @@
 import GenresController from '@controllers/GenresController';
 import { Router } from 'express';
-import Authentication from '@middlewares/authentication';
 
 const router = Router();
 
 router
     .route('/genres')
-    .post(Authentication.authenticate, GenresController.create)
-    .get(Authentication.authenticate, GenresController.list);
+    .post(GenresController.create)
+    .get(GenresController.list);
 
 router
     .route('/genres/:id')
-    .get(Authentication.authenticate, GenresController.read)
-    .patch(Authentication.authenticate, GenresController.update)
-    .delete(Authentication.authenticate, GenresController.delete);
+    .get(GenresController.read)
+    .patch(GenresController.update)
+    .delete(GenresController.delete);
 
 export default router;

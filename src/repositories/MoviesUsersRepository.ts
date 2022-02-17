@@ -2,6 +2,10 @@ import { Repository, EntityRepository } from 'typeorm';
 import MoviesUsers from '@models/MoviesUsers';
 import { CreateMovieUserDTO, ResultMovieUserDTO } from '../dtos/moviesUsers';
 
+interface MoviesUsersQueryParams {
+    text: string;
+}
+
 @EntityRepository(MoviesUsers)
 export default class MoviesUsersRespository extends Repository<MoviesUsers> {
     async createMovieUser(
@@ -49,11 +53,18 @@ export default class MoviesUsersRespository extends Repository<MoviesUsers> {
 
     async findMoviesUsersByUserId(
         userId: string,
-    ): Promise<MoviesUsers[] | boolean> {
+        params: MoviesUsersQueryParams,
+    ): Promise<any | boolean> {
         try {
             const result = await this.createQueryBuilder('movies_users')
                 .leftJoinAndSelect('movies_users.movie', 'movie')
                 .where('movies_users.user_id = :userId', { userId });
+
+            if (params.text && params.text !== '') {
+                result.andWhere('movie.title ilike :movieTitle', {
+                    movieTitle: `%${params.text}%`,
+                });
+            }
 
             const withSelections = await result.getMany();
 

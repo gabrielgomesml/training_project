@@ -21,7 +21,7 @@ export default class MoviesRespository extends Repository<Movies> {
 
     async listMovies(): Promise<ResultMovieDTO[] | boolean> {
         try {
-            const result = await this.find();
+            const result = await this.find({ relations: ['genres_movies'] });
 
             return result;
         } catch (error) {
@@ -32,7 +32,9 @@ export default class MoviesRespository extends Repository<Movies> {
 
     async findMovieById(id: string): Promise<ResultMovieDTO | null | boolean> {
         try {
-            const result = await this.findOne(id);
+            const result = await this.findOne(id, {
+                relations: ['genres_movies'],
+            });
 
             if (!result) {
                 return null;

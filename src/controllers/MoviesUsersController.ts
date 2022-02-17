@@ -139,10 +139,12 @@ class MoviesUsersController {
                 MoviesUsersRepository,
             );
 
+            const params: any = request.query;
+
             const { id } = request.params;
 
             const moviesUsers =
-                await moviesUsersRepository.findMoviesUsersByUserId(id);
+                await moviesUsersRepository.findMoviesUsersByUserId(id, params);
 
             if (moviesUsers === false) {
                 return response
