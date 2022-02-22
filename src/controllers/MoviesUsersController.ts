@@ -141,7 +141,7 @@ class MoviesUsersController {
 
             const params: any = request.query;
 
-            const { id } = request.params;
+            const { id } = request.payload;
 
             const moviesUsers =
                 await moviesUsersRepository.findMoviesUsersByUserId(id, params);
