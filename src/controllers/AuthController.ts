@@ -61,12 +61,13 @@ class AuthController {
             }
             const [, token] = authHeader.split(' ');
 
-            jwt.verify(token, process.env.JWT_SECRET);
+            jwt.verify(token.replace(/["]+/g, ''), process.env.JWT_SECRET);
 
             return response
                 .status(200)
                 .json({ message: 'Correct token', authHeader });
         } catch (error) {
+            console.log(' erro', error);
             return response
                 .status(401)
                 .json({ message: 'Incorrect token', authHeader });
