@@ -18,6 +18,10 @@ class AuthController {
                 return response.status(404).json({ error: 'User not found' });
             }
 
+            if (user.active === false) {
+                return response.status(403).json({ error: 'Bloked user' });
+            }
+
             const isPasswordCorrect = await bcrypt.compare(
                 password,
                 user.password,
