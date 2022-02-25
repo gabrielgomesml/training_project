@@ -20,11 +20,15 @@ class GenresMovies {
     @Column('uuid')
     movie_id: string;
 
-    @ManyToOne(() => Genres, genre => genre.genres_movies)
+    @ManyToOne(() => Genres, genre => genre.genres_movies, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'genre_id' })
     genre: Genres;
 
-    @ManyToOne(() => Movies, movie => movie.genres_movies)
+    @ManyToOne(() => Movies, movie => movie.genres_movies, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'movie_id' })
     movie: Movies;
 

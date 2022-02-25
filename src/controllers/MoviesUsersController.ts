@@ -9,9 +9,13 @@ class MoviesUsersController {
                 MoviesUsersRepository,
             );
 
-            const movieUser = await moviesUsersRepository.createMovieUser(
-                request.body,
-            );
+            const { id } = request.payload;
+            const { movie_id } = request.body;
+
+            const movieUser = await moviesUsersRepository.createMovieUser({
+                movie_id,
+                user_id: id,
+            });
 
             if (!movieUser) {
                 return response.status(400).json({ error: 'Incorrect params' });

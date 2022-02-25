@@ -20,11 +20,15 @@ class MoviesUsers {
     @Column('uuid')
     user_id: string;
 
-    @ManyToOne(() => Movies, movie => movie.movies_users)
+    @ManyToOne(() => Movies, movie => movie.movies_users, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'movie_id' })
     movie: Movies;
 
-    @ManyToOne(() => Users, user => user.movies_users)
+    @ManyToOne(() => Users, user => user.movies_users, {
+        onDelete: 'CASCADE',
+    })
     @JoinColumn({ name: 'user_id' })
     user: Users;
 
