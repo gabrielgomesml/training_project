@@ -1,4 +1,11 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    PrimaryGeneratedColumn,
+    CreateDateColumn,
+    OneToMany,
+} from 'typeorm';
+import GenresMovies from './GenresMovies';
 
 @Entity('genres')
 class Genres {
@@ -7,6 +14,12 @@ class Genres {
 
     @Column('text')
     name: string;
+
+    @OneToMany(() => GenresMovies, genres_movies => genres_movies.genre)
+    genres_movies: GenresMovies[];
+
+    @CreateDateColumn()
+    createdAt: Date;
 }
 
 export default Genres;

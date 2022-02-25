@@ -18,6 +18,10 @@ class AuthController {
                 return response.status(404).json({ error: 'User not found' });
             }
 
+            if (user.active === false) {
+                return response.status(403).json({ error: 'Bloked user' });
+            }
+
             const isPasswordCorrect = await bcrypt.compare(
                 password,
                 user.password,
@@ -32,7 +36,7 @@ class AuthController {
             }
 
             const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-                expiresIn: 1800,
+                expiresIn: '10h',
             });
 
             return response.status(200).json({
@@ -61,12 +65,13 @@ class AuthController {
             }
             const [, token] = authHeader.split(' ');
 
-            jwt.verify(token, process.env.JWT_SECRET);
+            jwt.verify(token.replace(/["]+/g, ''), process.env.JWT_SECRET);
 
             return response
                 .status(200)
                 .json({ message: 'Correct token', authHeader });
         } catch (error) {
+            console.log(' erro', error);
             return response
                 .status(401)
                 .json({ message: 'Incorrect token', authHeader });

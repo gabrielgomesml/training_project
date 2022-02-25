@@ -1,7 +1,7 @@
 import UsersController from '@controllers/UsersController';
 import AuthController from '@controllers/AuthController';
 import { Router } from 'express';
-import Authentication from '@middlewares/authentication';
+import Authentication from '../middlewares/authentication';
 
 const router = Router();
 

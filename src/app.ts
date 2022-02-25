@@ -13,7 +13,9 @@ class Application {
     }
 
     middlewares() {
-        this.express.use(cors());
+        this.express.use(
+            cors({ credentials: true, origin: 'http://localhost:8080' }),
+        );
         this.express.use(express.json());
         this.express.use(express.urlencoded({ extended: true }));
     }

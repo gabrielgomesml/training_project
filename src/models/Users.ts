@@ -3,7 +3,9 @@ import {
     Entity,
     PrimaryGeneratedColumn,
     CreateDateColumn,
+    OneToMany,
 } from 'typeorm';
+import MoviesUsers from './MoviesUsers';
 
 @Entity('users')
 class Users {
@@ -33,6 +35,9 @@ class Users {
 
     @Column('boolean', { default: true })
     active: boolean;
+
+    @OneToMany(() => MoviesUsers, movies_users => movies_users.user)
+    movies_users: MoviesUsers[];
 
     @CreateDateColumn()
     createdAt: Date;
