@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
-import { Server, Socket } from 'socket.io';
+import { connection, server as WebSocketServer } from 'websocket';
+import { serverEmitter, clientEmitter } from './events';
 
 const EVENTS = {
     connection: 'connection',
@@ -15,47 +16,65 @@ const EVENTS = {
     },
 };
 
-const rooms: Record<string, { name: string }> = {};
+let users: any = {};
 
-function socket({ io }: { io: Server }) {
-    console.log('Sockets enabled');
+interface EventMsg {
+    eventType: string;
+    event: string;
+    payload: any;
+}
 
-    io.on(EVENTS.connection, (socketIo: Socket) => {
-        console.log(`User connected ${socketIo.id}`);
+// Função para lidar com as requisições, adicionar o socket ao objeto de usuários e encerrar as conexões.
+const handleRequest = (wsConnection: connection) => {
+    const userId = nanoid();
 
-        socketIo.emit(EVENTS.SERVER.ROOMS, rooms);
+    // Observar se chegou uma nova mensagem, parsear o json, disparar o evento de acordo com as informações que chegaram.
+    wsConnection.on('message', message => {
+        if (message.type === 'utf8') {
+            const msg: EventMsg = JSON.parse(message.utf8Data);
+            if (msg.eventType === 'serverEvent') {
+                serverEmitter.emit(msg.event, msg.payload);
+            } else if (msg.eventType === 'clientEvent') {
+                clientEmitter.emit(msg.event, msg.payload);
+            }
+        } else {
+            console.log('Invalid message');
+        }
+    });
 
-        socketIo.on(EVENTS.CLIENT.CREATE_ROOM, ({ roomName }) => {
-            console.log(roomName);
-            const roomId = nanoid();
+    wsConnection.on('close', () => {
+        console.log(`Connection closed with user: ${userId}!`);
+        delete users[userId];
+    });
 
-            rooms[roomId] = {
-                name: roomName,
-            };
+    users = { ...users, [userId]: wsConnection };
 
-            socketIo.join(roomId);
-            socketIo.broadcast.emit(EVENTS.SERVER.ROOMS, rooms);
-            socketIo.emit(EVENTS.SERVER.ROOMS, rooms);
-            socketIo.emit(EVENTS.SERVER.JOINED_ROOM, roomId);
-        });
+    clientEmitter.addListener(EVENTS.CLIENT.SEND_ROOM_MESSAGE, payload => {
+        const { message, username } = payload;
+        const date = new Date();
+        console.log(
+            `Entrou no send room message e payload tem isso: ${payload}`,
+        );
 
-        socketIo.on(
-            EVENTS.CLIENT.SEND_ROOM_MESSAGE,
-            ({ roomId, message, username }) => {
-                const date = new Date();
-
-                socketIo.to(roomId).emit(EVENTS.SERVER.ROOM_MESSAGE, {
+        wsConnection.send(
+            JSON.stringify({
+                eventType: 'serverEvent',
+                event: EVENTS.SERVER.ROOM_MESSAGE,
+                payload: {
                     message,
                     username,
                     time: `${date.getHours()}:${date.getMinutes()}`,
-                });
-            },
+                },
+            }),
         );
+    });
+};
 
-        socketIo.on(EVENTS.CLIENT.JOIN_ROOM, (roomId: string) => {
-            socketIo.join(roomId);
-            socketIo.emit(EVENTS.SERVER.JOINED_ROOM, roomId);
-        });
+function socket({ io }: { io: WebSocketServer }) {
+    io.on('request', request => {
+        // Aceitar, estabelecer a conexão e mandar para a função handleRequest a conexão com o socket.
+        console.log(`New request from ${request.origin}`);
+        handleRequest(request.accept(null, request.origin));
     });
 }
 
