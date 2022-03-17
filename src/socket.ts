@@ -13,10 +13,13 @@ const EVENTS = {
         ROOMS: 'ROOMS',
         JOINED_ROOM: 'JOINED_ROOM',
         ROOM_MESSAGE: 'ROOM_MESSAGE',
+        SEND_CLIENT_ID: 'SEND_CLIENT_ID',
     },
 };
 
 let users: any = {};
+const rooms: any = {};
+// const rooms: Record<string, { name: string; users: connection[] }> = {};
 
 interface EventMsg {
     eventType: string;
@@ -24,9 +27,39 @@ interface EventMsg {
     payload: any;
 }
 
+const broadcastMsg = (roomId: string, message: string) => {
+    rooms[roomId].users.forEach((userId: string) => {
+        users[userId].send(message);
+    });
+};
+
+function removeItem<T>(arr: Array<T>, value: T): Array<T> {
+    const index = arr.indexOf(value);
+    if (index > -1) {
+        arr.splice(index, 1);
+    }
+    return arr;
+}
+
 // Função para lidar com as requisições, adicionar o socket ao objeto de usuários e encerrar as conexões.
 const handleRequest = (wsConnection: connection) => {
     const userId = nanoid();
+
+    wsConnection.send(
+        JSON.stringify({
+            eventType: 'connectionEvent',
+            event: EVENTS.connection,
+            payload: { userId },
+        }),
+    );
+
+    wsConnection.send(
+        JSON.stringify({
+            eventType: 'serverEvent',
+            event: EVENTS.SERVER.ROOMS,
+            payload: { roomsData: rooms },
+        }),
+    );
 
     // Observar se chegou uma nova mensagem, parsear o json, disparar o evento de acordo com as informações que chegaram.
     wsConnection.on('message', message => {
@@ -44,30 +77,98 @@ const handleRequest = (wsConnection: connection) => {
 
     wsConnection.on('close', () => {
         console.log(`Connection closed with user: ${userId}!`);
-        delete users[userId];
+        clientEmitter.removeListener(EVENTS.CLIENT.SEND_ROOM_MESSAGE, () => {
+            delete users[userId];
+        });
     });
 
     users = { ...users, [userId]: wsConnection };
 
-    clientEmitter.addListener(EVENTS.CLIENT.SEND_ROOM_MESSAGE, payload => {
-        const { message, username } = payload;
-        const date = new Date();
-        console.log(
-            `Entrou no send room message e payload tem isso: ${payload}`,
-        );
+    clientEmitter.addListener(
+        `${EVENTS.CLIENT.SEND_ROOM_MESSAGE}/${userId}`,
+        payload => {
+            const { message, username, roomId } = payload;
+            const date = new Date();
 
-        wsConnection.send(
-            JSON.stringify({
-                eventType: 'serverEvent',
-                event: EVENTS.SERVER.ROOM_MESSAGE,
-                payload: {
-                    message,
-                    username,
-                    time: `${date.getHours()}:${date.getMinutes()}`,
-                },
-            }),
-        );
-    });
+            broadcastMsg(
+                roomId,
+                JSON.stringify({
+                    eventType: 'serverEvent',
+                    event: `${EVENTS.SERVER.ROOM_MESSAGE}/${roomId}`,
+                    payload: {
+                        message,
+                        username,
+                        time: `${date.getHours()}:${date.getMinutes()}`,
+                    },
+                }),
+            );
+        },
+    );
+
+    clientEmitter.addListener(
+        `${EVENTS.CLIENT.CREATE_ROOM}/${userId}`,
+        payload => {
+            const { roomName, currentRoomKey } = payload;
+
+            if (currentRoomKey && currentRoomKey !== '') {
+                const newUsersArray = removeItem(
+                    rooms[currentRoomKey].users,
+                    userId,
+                );
+
+                rooms[currentRoomKey] = {
+                    name: rooms[currentRoomKey].name,
+                    users: newUsersArray,
+                };
+            }
+
+            const roomId = nanoid();
+            rooms[roomId] = {
+                name: roomName,
+                users: [userId],
+            };
+
+            wsConnection.send(
+                JSON.stringify({
+                    eventType: 'serverEvent',
+                    event: EVENTS.SERVER.ROOMS,
+                    payload: { roomsData: rooms },
+                }),
+            );
+
+            wsConnection.send(
+                JSON.stringify({
+                    eventType: 'serverEvent',
+                    event: `${EVENTS.SERVER.JOINED_ROOM}/${userId}`,
+                    payload: { roomKey: roomId },
+                }),
+            );
+        },
+    );
+
+    clientEmitter.addListener(
+        `${`${EVENTS.CLIENT.JOIN_ROOM}/${userId}`}`,
+        payload => {
+            const { userKey, roomKey, currentRoomKey } = payload;
+
+            if (currentRoomKey && currentRoomKey !== '') {
+                const newUsersArray = removeItem(
+                    rooms[currentRoomKey].users,
+                    userKey,
+                );
+
+                rooms[currentRoomKey] = {
+                    name: rooms[currentRoomKey].name,
+                    users: newUsersArray,
+                };
+            }
+
+            rooms[roomKey] = {
+                name: rooms[roomKey].name,
+                users: rooms[roomKey].users.concat([userKey]),
+            };
+        },
+    );
 };
 
 function socket({ io }: { io: WebSocketServer }) {
