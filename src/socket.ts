@@ -111,15 +111,7 @@ const handleRequest = (wsConnection: connection) => {
             const { roomName, currentRoomKey } = payload;
 
             if (currentRoomKey && currentRoomKey !== '') {
-                const newUsersArray = removeItem(
-                    rooms[currentRoomKey].users,
-                    userId,
-                );
-
-                rooms[currentRoomKey] = {
-                    name: rooms[currentRoomKey].name,
-                    users: newUsersArray,
-                };
+                removeItem(rooms[currentRoomKey].users, userId);
             }
 
             const roomId = nanoid();
@@ -152,15 +144,7 @@ const handleRequest = (wsConnection: connection) => {
             const { userKey, roomKey, currentRoomKey } = payload;
 
             if (currentRoomKey && currentRoomKey !== '') {
-                const newUsersArray = removeItem(
-                    rooms[currentRoomKey].users,
-                    userKey,
-                );
-
-                rooms[currentRoomKey] = {
-                    name: rooms[currentRoomKey].name,
-                    users: newUsersArray,
-                };
+                removeItem(rooms[currentRoomKey].users, userId);
             }
 
             rooms[roomKey] = {
